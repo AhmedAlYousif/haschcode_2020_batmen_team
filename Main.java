@@ -46,61 +46,54 @@ public class Main {
 				Library library = new Library(i, booksNum, singUpDays, booksPerDay);
 
 				for (int j = 0; j < booksNum; j++) {
-					library.books.add(reader.nextInt());
+					int id = reader.nextInt();
+					library.addBook(id, booksScore.get(id));
 				}
 				libraries.add(library);
 			}
 			Collections.sort(libraries, (l1, l2) -> {
-				if(l1.singUpDays != l2.singUpDays)
+				if (l1.singUpDays != l2.singUpDays)
 					return l1.singUpDays - l2.singUpDays;
-				else if (l1.booksPerDay != l2.booksPerDay)
+				else if(l2.booksPerDay != l1.booksPerDay)
 					return l2.booksPerDay - l1.booksPerDay;
 				else
 					return l2.booksNum - l1.booksNum;
-				// return ((l1.singUpDays/l1.booksPerDay)) - ((l2.singUpDays/l2.booksPerDay)) ;
 			});
-			File outFile = new File("output_" + inputFiles[k]);
-			try {
-				outFile.createNewFile();
-				FileWriter writer = new FileWriter(outFile);
-				writer.append(libraryNum + "\n");
 
-				List<Integer> books;
-				for (int i = 0; i < libraryNum; i++) {
-					books = new ArrayList<>();
-					
-					if(i != 0){
-						for(int id : libraries.get(i).books){
-						
-							if(!booksIds.get(id)){
-								books.add(id);
-							}
+			List<Integer> books;
+			List<Library> toKeeplibraries = new ArrayList<>();
+			for (int i = 0; i < libraryNum; i++) {
+				books = new ArrayList<>();
+				if (i != 0) {
+					for (int id : libraries.get(i).books) {
+						if (!booksIds.get(id)) {
+							books.add(id);
 						}
-						if(books.size() != 0)
-							libraries.get(i).books = books;
-						else
-							libraries.get(i).books = Arrays.asList(libraries.get(i).books.get(0));
 					}
-
-					int numOfBooksForScanning = libraries.get(i).books.size();
-
-					writer.append(libraries.get(i).id + " " + numOfBooksForScanning + "\n");
-
-					for (int j = 0; j < numOfBooksForScanning; j++) {
-						writer.append(libraries.get(i).books.get(j) + "");
-						booksIds.put(libraries.get(i).books.get(j), true);
-						if (j != numOfBooksForScanning - 1)
-							writer.append(" ");
-						else
-							writer.append("\n");
+					if (books.size() != 0){
+						libraries.get(i).books = books;
+						toKeeplibraries.add(libraries.get(i));
+						Collections.sort(libraries.get(i).books, (b1, b2) -> {
+							return booksScore.get(b2) - booksScore.get(b1);
+						});
 					}
+				} else{
+					toKeeplibraries.add(libraries.get(i));
+					Collections.sort(libraries.get(i).books, (b1, b2) -> {
+						return booksScore.get(b2) - booksScore.get(b1);
+					});
 				}
-				System.out.println(outFile.getName());
-				writer.flush();
-				writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+				
+				int numOfBooksForScanning = libraries.get(i).books.size();
+
+				for (int j = 0; j < numOfBooksForScanning; j++) {
+					booksIds.put(libraries.get(i).books.get(j), true);
+				}
 			}
+			Collections.sort(toKeeplibraries, (l1, l2) -> {
+				return l2.books.size() - l1.books.size();
+			});
+			printOutput(toKeeplibraries, k);
 		}
 	}
 
@@ -110,6 +103,8 @@ public class Main {
 		int singUpDays;
 		int booksPerDay;
 
+		int totalScore;
+
 		List<Integer> books;
 
 		public Library(int id, int booksNum, int singUpDays, int booksPerDay) {
@@ -118,6 +113,38 @@ public class Main {
 			this.singUpDays = singUpDays;
 			this.booksPerDay = booksPerDay;
 			this.books = new ArrayList<>();
+			this.totalScore = 0;
+		}
+
+		public void addBook(int bookId, int score) {
+			this.books.add(bookId);
+			this.totalScore += score;
+		}
+	}
+
+	static void printOutput(List<Library> libraries, int k) {
+		File outFile = new File("output_" + inputFiles[k]);
+		try {
+			outFile.createNewFile();
+			FileWriter writer = new FileWriter(outFile);
+			int size = libraries.size();
+			writer.append(size + "\n");
+			for (int i = 0; i < size; i++) {
+				int bookSize = libraries.get(i).books.size();
+				writer.append(libraries.get(i).id + " " + bookSize + "\n");
+				for (int j = 0; j < bookSize; j++) {
+					writer.append(libraries.get(i).books.get(j) + "");
+					if (j != bookSize - 1)
+						writer.append(" ");
+					else
+						writer.append("\n");
+				}
+			}
+			System.out.println(outFile.getName());
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
