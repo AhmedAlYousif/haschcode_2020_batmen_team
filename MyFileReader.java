@@ -67,6 +67,9 @@ public class MyFileReader {
 		else
 			return "";
 	}
+	public int nextInt(){
+		return myReader.nextInt();
+	}
 	
 	public void close()
 	{
