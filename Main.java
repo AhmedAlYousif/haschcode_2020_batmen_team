@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -64,14 +65,22 @@ public class Main {
 				FileWriter writer = new FileWriter(outFile);
 				writer.append(libraryNum + "\n");
 
-				List<Integer> books = new ArrayList<>();
+				List<Integer> books;
 				for (int i = 0; i < libraryNum; i++) {
-					for(int id : libraries.get(i).books){
-						if(!booksIds.get(id)){
-							books.add(id);
+					books = new ArrayList<>();
+					
+					if(i != 0){
+						for(int id : libraries.get(i).books){
+						
+							if(!booksIds.get(id)){
+								books.add(id);
+							}
 						}
+						if(books.size() != 0)
+							libraries.get(i).books = books;
+						else
+							libraries.get(i).books = Arrays.asList(libraries.get(i).books.get(0));
 					}
-					libraries.get(i).books = books;
 
 					int numOfBooksForScanning = libraries.get(i).books.size();
 
@@ -80,7 +89,7 @@ public class Main {
 					for (int j = 0; j < numOfBooksForScanning; j++) {
 						writer.append(libraries.get(i).books.get(j) + "");
 						booksIds.put(libraries.get(i).books.get(j), true);
-						if (j != libraries.get(i).booksNum - 1)
+						if (j != numOfBooksForScanning - 1)
 							writer.append(" ");
 						else
 							writer.append("\n");
