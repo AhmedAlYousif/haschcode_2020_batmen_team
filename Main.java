@@ -2,6 +2,7 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,7 +62,7 @@ public class Main {
 			});
 
 			List<Integer> books;
-			List<Library> toKeeplibraries = new ArrayList<>();
+			List<Library> toSemulatelibraries = new ArrayList<>();
 			for (int i = 0; i < libraryNum; i++) {
 				books = new ArrayList<>();
 				if (i != 0) {
@@ -72,13 +73,13 @@ public class Main {
 					}
 					if (books.size() != 0){
 						libraries.get(i).books = books;
-						toKeeplibraries.add(libraries.get(i));
+						toSemulatelibraries.add(libraries.get(i));
 						Collections.sort(libraries.get(i).books, (b1, b2) -> {
 							return booksScore.get(b2) - booksScore.get(b1);
 						});
 					}
 				} else{
-					toKeeplibraries.add(libraries.get(i));
+					toSemulatelibraries.add(libraries.get(i));
 					Collections.sort(libraries.get(i).books, (b1, b2) -> {
 						return booksScore.get(b2) - booksScore.get(b1);
 					});
@@ -90,10 +91,26 @@ public class Main {
 					booksIds.put(libraries.get(i).books.get(j), true);
 				}
 			}
+			int i = 0;
+			List<Library> toKeeplibraries = new ArrayList<>();
+			while(daysNum > 0 && i < toSemulatelibraries.size()){
+				if(daysNum - toSemulatelibraries.get(i).singUpDays <= 0){
+					i++;
+					continue;
+				}
+				daysNum -= toSemulatelibraries.get(i).singUpDays;
+				toKeeplibraries.add(toSemulatelibraries.get(i));
+				BigInteger totalBooksCap = new BigInteger(""+(toSemulatelibraries.get(i).booksPerDay * daysNum));
+				if(totalBooksCap.compareTo(new BigInteger("" + (toSemulatelibraries.get(i).books.size()))) == -1 && totalBooksCap.intValue() > 0){
+					toSemulatelibraries.get(i).books = toSemulatelibraries.get(i).books.subList(0, totalBooksCap.intValue());
+				}
+				i++;
+			}
 			Collections.sort(toKeeplibraries, (l1, l2) -> {
-				return l2.books.size() - l1.books.size();
+				return l2.totalScore - l1.totalScore;
 			});
 			printOutput(toKeeplibraries, k);
+			
 		}
 	}
 
@@ -119,6 +136,13 @@ public class Main {
 		public void addBook(int bookId, int score) {
 			this.books.add(bookId);
 			this.totalScore += score;
+		}
+
+		public void reCalcTotal(){
+			this.totalScore = 0;
+			for(int i = 0; i < this.books.size(); i++){
+				this.totalScore += booksScore.get(this.books.get(i));
+			}
 		}
 	}
 
